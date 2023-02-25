@@ -1,0 +1,39 @@
+const express = require('express')
+const app = express()
+const mongoose = require('mongoose')
+const { MONGOURI } = require('./config/keys')
+const PORT = process.env.PORT || 5000
+
+
+mongoose.set('strictQuery', false);
+
+mongoose.connect(MONGOURI)
+
+mongoose.connection.on('connected',()=>{
+    console.log("Hell yeah it is conneced with mongo");
+})
+
+mongoose.connection.on('error',(err)=>{
+    console.log("Ohh boy you did somethng wrong", err);
+})
+
+require('./models/User')
+require('./models/post')
+
+app.use(express.json())
+app.use(require('./routes/auth'))
+app.use(require('./routes/post'))
+app.use(require('./routes/user'))
+
+if(process.env.NODE_ENV=="production"){
+    app.use(express.static('client/build'))
+    const path = require('path')
+    app.get("*",(req,res)=>{
+        res.sendFile(path.resolve(__dirname,'client','build','index.html'))
+    })
+
+}
+
+app.listen(PORT, ()=>{
+    console.log("server is running on", PORT)
+})
